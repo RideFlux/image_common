@@ -91,6 +91,24 @@ ament_export_dependencies(message_filters rclcpp sensor_msgs pluginlib)
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
 
+  # The compressed plugin depends on image_transport, so it cannot be a
+  # package.xml test dependency. Run the integration test when it is installed.
+  find_package(compressed_image_transport QUIET)
+  if(compressed_image_transport_FOUND)
+    find_package(ament_cmake_test REQUIRED)
+    find_package(Python3 REQUIRED COMPONENTS Interpreter)
+    ament_add_test(republish_shutdown
+      COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/test/smoke_republish_shutdown.py"
+        --republish-bin "$<TARGET_FILE:republish>"
+        --transport compressed --iterations 3
+      TIMEOUT 120
+      GENERATE_RESULT_FOR_RETURN_CODE_ZERO
+    )
+  else()
+    message(STATUS "republish_shutdown requires an installed compressed_image_transport plugin")
+  endif()
+
   list(APPEND AMENT_LINT_AUTO_EXCLUDE
     ament_cmake_cppcheck
   )

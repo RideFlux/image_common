@@ -48,6 +48,10 @@ int main(int argc, char ** argv)
     return 0;
   }
 
+  // Keep the output plugin loaded while Node destroys weak subscription references.
+  typedef image_transport::PublisherPlugin Plugin;
+  pluginlib::ClassLoader<Plugin> loader("image_transport", "image_transport::PublisherPlugin");
+
   auto node = rclcpp::Node::make_shared("image_republisher");
 
   std::string in_topic = rclcpp::expand_topic_or_service_name(
@@ -77,8 +81,6 @@ int main(int argc, char ** argv)
     std::string out_transport = vargv[2];
 
     // Load transport plugin
-    typedef image_transport::PublisherPlugin Plugin;
-    pluginlib::ClassLoader<Plugin> loader("image_transport", "image_transport::PublisherPlugin");
     std::string lookup_name = Plugin::getLookupName(out_transport);
 
     auto instance = loader.createUniqueInstance(lookup_name);
